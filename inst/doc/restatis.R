@@ -30,6 +30,6 @@
 #  
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  gen_modified_data(code = "62361", date = "week_before")
+#  gen_modified_data(code = "62361", date = "week_before", database = "genesis")
 #  
 

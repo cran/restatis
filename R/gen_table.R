@@ -34,10 +34,15 @@
 #'     \item{\code{language}}{Search terms, returned messages and data
 #'       descriptions in German (`"de"`) or English (`"en"`)?}
 #'     \item{\code{job}}{Boolean. Indicate as to whether a job should be created
-#'        (not available with the 'Zensus' database).)}
+#'        (not available with the 'Zensus' database). In order to set job = TRUE
+#'        you have to have username and password saved with gen_auth_save(),
+#'        using API tokens with job = TRUE will result in an error.}
 #'     \item{\code{all_character}}{Boolean. Should all variables be imported as
 #'        'character' variables? Avoids fuzzy data type conversions if there are
 #'        leading zeros or other special characters. Defaults to TRUE.}
+#'     \item{\code{...}}{Additional parameters for the API call (see respective API documentation).
+#'       A valid specification of these will not be checked by the function, so wrongful specification
+#'       may lead to errors.}
 #'   }
 #'
 #' @return A [tibble][tibble::tibble()].
@@ -46,11 +51,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' gen_table("21311-0001")
+#' gen_table("21311-0001", database = "genesis")
 #' }
 #'
 gen_table <- function(name, ...) {
+
   gen_table_(name, ...)
+
 }
 
 #-------------------------------------------------------------------------------
@@ -71,12 +78,20 @@ gen_table_ <- function(name,
                        classifyingvariable3 = NULL,
                        classifyingkey3 = NULL,
                        stand = NULL,
-                       language = Sys.getenv("GENESIS_LANG"),
+                       language = Sys.getenv("RESTATIS_LANG"),
                        job = FALSE,
-                       all_character = TRUE) {
+                       all_character = TRUE,
+                       ...) {
 
   #-----------------------------------------------------------------------------
   # Parameter processing
+
+  if (missing(database)) {
+
+    stop("It is mandatory to specifiy the 'database' parameter for 'gen_table()'.",
+         call. = FALSE)
+
+  }
 
   database <- match.arg(database)
 
@@ -101,86 +116,52 @@ gen_table_ <- function(name,
   classifyingkey3 <- param_collapse_vec(classifyingkey3)
 
   #-----------------------------------------------------------------------------
-  # Data download
+  # Manage credentials related to jobs
 
-  if(database == "zensus"){
+  credentials <- gen_auth_get(database = database)
 
-    response <- gen_zensus_api("data/tablefile",
-                               name = name,
-                               area = area,
-                               compress = compress,
-                               transpose = transpose,
-                               startyear = startyear,
-                               endyear = endyear,
-                               regionalvariable = regionalvariable,
-                               regionalkey = regionalkey,
-                               classifyingvariable1 = classifyingvariable1,
-                               classifyingkey1 = classifyingkey1,
-                               classifyingvariable2 = classifyingvariable2,
-                               classifyingkey2 = classifyingkey2,
-                               classifyingvariable3 = classifyingvariable3,
-                               classifyingkey3 = classifyingkey3,
-                               stand = stand,
-                               language = language,
-                               format = "ffcsv",
-                               job = FALSE)
+  cred_attr <- credentials %>% attributes %>% names
 
-  #-----------------------------------------------------------------------------
+  if (!("credential_type" %in% cred_attr)) {
 
-  } else if (database == "genesis"){
-
-    response <- gen_api("data/tablefile",
-                        name = name,
-                        area = area,
-                        compress = compress,
-                        transpose = transpose,
-                        startyear = startyear,
-                        endyear = endyear,
-                        regionalvariable = regionalvariable,
-                        regionalkey = regionalkey,
-                        classifyingvariable1 = classifyingvariable1,
-                        classifyingkey1 = classifyingkey1,
-                        classifyingvariable2 = classifyingvariable2,
-                        classifyingkey2 = classifyingkey2,
-                        classifyingvariable3 = classifyingvariable3,
-                        classifyingkey3 = classifyingkey3,
-                        stand = stand,
-                        language = language,
-                        format = "ffcsv",
-                        job = job)
-
-  #-----------------------------------------------------------------------------
-
-  } else if (database == "regio") {
-
-    response <- gen_regio_api("data/tablefile",
-                              name = name,
-                              area = area,
-                              compress = compress,
-                              transpose = transpose,
-                              startyear = startyear,
-                              endyear = endyear,
-                              regionalvariable = regionalvariable,
-                              regionalkey = regionalkey,
-                              classifyingvariable1 = classifyingvariable1,
-                              classifyingkey1 = classifyingkey1,
-                              classifyingvariable2 = classifyingvariable2,
-                              classifyingkey2 = classifyingkey2,
-                              classifyingvariable3 = classifyingvariable3,
-                              classifyingkey3 = classifyingkey3,
-                              stand = stand,
-                              language = language,
-                              format = "ffcsv",
-                              job = job)
-
-  #-----------------------------------------------------------------------------
-
-  } else {
-
-    stop("Parameter 'database' has to be 'zensus', 'regio' or 'genesis'.",
+    stop("There has been an error specifying your credentials (missing credential type attribute). Please try again using 'gen_auth_save()'.",
          call. = FALSE)
 
   }
+
+  if (isTRUE(job) & attr(credentials, "credential_type") == "token" & database == "genesis") {
+
+    stop(paste0("It is not possible to set 'job = TRUE' when an API token is used for authentication.\n",
+                "Use 'gen_auth_save(\"", database, "\", use_token = FALSE)' and input username and password to enable creating jobs.\n",
+                "See README for more information."),
+         call. = FALSE)
+
+  }
+
+  #-----------------------------------------------------------------------------
+  # Data download
+
+  response <- gen_api(endpoint = "data/tablefile",
+                      database = database,
+                      name = name,
+                      area = area,
+                      compress = compress,
+                      transpose = transpose,
+                      startyear = startyear,
+                      endyear = endyear,
+                      regionalvariable = regionalvariable,
+                      regionalkey = regionalkey,
+                      classifyingvariable1 = classifyingvariable1,
+                      classifyingkey1 = classifyingkey1,
+                      classifyingvariable2 = classifyingvariable2,
+                      classifyingkey2 = classifyingkey2,
+                      classifyingvariable3 = classifyingvariable3,
+                      classifyingkey3 = classifyingkey3,
+                      stand = stand,
+                      language = language,
+                      format = "ffcsv",
+                      job = FALSE,
+                      ...)
 
   #-----------------------------------------------------------------------------
   # Data processing

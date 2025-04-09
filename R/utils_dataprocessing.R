@@ -278,6 +278,7 @@ forming_evas <- function(list_of) {
 #' @param area Parameter to be checked
 #' @param verbose Parameter to be checked
 #' @param raw Parameter to be checked
+#' @param pagelength Parameter to be checked
 #'
 check_function_input <- function(code = NULL,
                                  term = NULL,
@@ -289,11 +290,21 @@ check_function_input <- function(code = NULL,
                                  similarity = NULL,
                                  error.ignore = NULL,
                                  ordering = NULL,
+                                 pagelength = NULL,
                                  database = NULL,
                                  area = NULL,
                                  caller = NULL,
                                  verbose = NULL,
                                  raw = NULL) {
+
+  #-----------------------------------------------------------------------------
+
+  if ((length(database) == 1 && !is.null(database) && database == "all") |
+      (length(database) > 1 && "all" %in% database)) {
+
+    database <- c("regio", "zensus", "genesis")
+
+  }
 
   #-----------------------------------------------------------------------------
   # verbose ----
@@ -316,21 +327,31 @@ check_function_input <- function(code = NULL,
 
   }
 
+  #-------------------------------------------------------------------------------
+  # Pagelength
+
+  if (!is.null(pagelength) && (!(pagelength %in% c(1:25000)) || length(pagelength) != 1)) {
+
+    stop("Parameter 'pagelength' must have a value between 1 and 25,000 and a length of 1.",
+         call. = FALSE)
+
+  }
+
   #-----------------------------------------------------------------------------
   # Code & Term ----
 
   if (is.null(code) && is.null(term) && !is.null(caller)) {
 
-    if (!(caller %in% c("gen_search_vars", "restatis::gen_search_vars"))) {
+    if (!(caller %in% c("gen_search_vars", "restatis::gen_search_vars",
+                        "gen_signs", "restatis::gen_signs"))) {
 
-      stop("Parameter 'code' or 'term' must NOT be NULL.",
+      stop("Parameter 'code' or 'term' must not be NULL, missing or unspecified.",
            call. = FALSE)
 
     }
 
   }
 
-  #-----------------------------------------------------------------------------
   # Code ----
 
   if (!is.null(code)) {
@@ -458,16 +479,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      if("gen_zensus_api" %in% database){
-
-        #-----------------------------------------------------------------------
-
-        if (!all(category %in% c("tables", "cubes", "statistics"))) {
-
-          stop("Available categories are 'tables' and 'statistics'.",
-               call. = FALSE)
-
-        }
+      if ("zensus" %in% database) {
 
         #-----------------------------------------------------------------------
 
@@ -478,7 +490,6 @@ check_function_input <- function(code = NULL,
 
           stop("Available categories for 'zensus' database are: 'tables' and 'statistics'.",
                call. = FALSE)
-
 
         #-----------------------------------------------------------------------
 
@@ -494,13 +505,14 @@ check_function_input <- function(code = NULL,
                    isFALSE(error.ignore) &&
                    isTRUE(verbose)) {
 
-          warning("Available categories for 'zensus'-database are: 'tables' and 'statistics'.",
-                  call. = FALSE)
+          stop("Available categories for 'zensus' database are: 'tables' and 'statistics'.",
+               call. = FALSE)
 
         } else if ("cubes" %in% category &&
-                   isTRUE(error.ignore) && isTRUE(verbose)) {
+                   isTRUE(error.ignore) &&
+                   isTRUE(verbose)) {
 
-          warning("Available categories for 'zensus'-database are: 'tables' and 'statistics'.\nFunction is continued with specified 'category'-parameter excluding 'cubes'.",
+          warning("Available categories for 'zensus' database are: 'tables' and 'statistics'.\nFunction is continued with specified 'category'-parameter excluding 'cubes'.",
                   call. = FALSE)
 
         }
@@ -509,7 +521,7 @@ check_function_input <- function(code = NULL,
 
     #-------------------------------------------------------------------------------
 
-      if("gen_api" %in% database){
+      if("genesis" %in% database){
 
         if (!all(category %in% c("tables", "cubes", "statistics"))) {
 
@@ -529,7 +541,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      if("gen_zensus_api" %in% database){
+      if("zensus" %in% database){
 
         #-----------------------------------------------------------------------
 
@@ -589,7 +601,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      if("gen_api" %in% database){
+      if("genesis" %in% database){
 
         if (!all(category %in% c("tables", "cubes", "variables"))) {
 
@@ -612,7 +624,7 @@ check_function_input <- function(code = NULL,
 
           #---------------------------------------------------------------------
 
-          if("gen_api" %in% database){
+          if ("genesis" %in% database){
 
             stop("Available categories for parameter 'category' for 'genesis' database are 'all', 'tables', 'statistics', 'variables', and 'cubes'.",
                  call. = FALSE)
@@ -621,7 +633,7 @@ check_function_input <- function(code = NULL,
 
           #---------------------------------------------------------------------
 
-          if("gen_zensus_api" %in% database){
+          if("zensus" %in% database){
 
             stop("Available categories for parameter 'category' for 'zensus' database are 'all', 'tables', 'statistics', and 'variables'.",
                  call. = FALSE)
@@ -638,7 +650,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      if("gen_zensus_api" %in% database){
+      if("zensus" %in% database){
 
         #-----------------------------------------------------------------------
 
@@ -680,7 +692,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      if("gen_api" %in% database){
+      if("genesis" %in% database){
 
         #-----------------------------------------------------------------------
 
@@ -695,7 +707,7 @@ check_function_input <- function(code = NULL,
 
       #-------------------------------------------------------------------------
 
-      else if("gen_zensus_api" %in% database) {
+      else if("zensus" %in% database) {
 
         if (!all(category %in% c("statistic", "table", "variable", "value"))) {
 
@@ -740,7 +752,7 @@ check_function_input <- function(code = NULL,
 
     #---------------------------------------------------------------------------
 
-    if ("gen_api" %in% database){
+    if ("genesis" %in% database){
 
       #-------------------------------------------------------------------------
 
@@ -755,7 +767,7 @@ check_function_input <- function(code = NULL,
 
     #---------------------------------------------------------------------------
 
-    if ("gen_zensus_api" %in% database){
+    if ("zensus" %in% database){
 
       if (!all(type %in% c("all", "tables", "statistics"))) {
 
@@ -799,7 +811,7 @@ check_function_input <- function(code = NULL,
 
     #---------------------------------------------------------------------------
 
-    if (isTRUE(error.ignore) && isTRUE(verbose)) {
+    if (isTRUE(error.ignore) && isTRUE(verbose) && !(caller %in% c("gen_metadata", "restatis::gen_metadata"))) {
 
       message("Use 'error.ignore = FALSE' to stop the function at the point where no object could be found.")
 
@@ -864,7 +876,7 @@ check_function_input <- function(code = NULL,
 
   #-----------------------------------------------------------------------------
   # raw ----
-  if(!is.null(raw)){
+  if (!is.null(raw)){
 
     if (!is.logical(raw) || length(raw) != 1) {
 
@@ -896,7 +908,7 @@ check_function_input <- function(code = NULL,
 
     if (identical(date, c("now", "week_before", "month_before", "year_before"))) {
 
-      if(isTRUE(verbose)){
+      if (isTRUE(verbose)){
 
       message("Please note that per default the current system date is used.\nThis date is calculated automatically and may differ from manually entered data.\nManually entered data must have the format DD.MM.YYYY.")
 
@@ -1098,7 +1110,7 @@ titel_search <- function(x, term, text) {
 #'
 test_database_function <- function(input, error.input, text){
 
-    #-------------------------------------------------------------------------
+  #-----------------------------------------------------------------------------
 
   if (!is.logical(text) || length(text) != 1) {
 
@@ -1106,6 +1118,8 @@ test_database_function <- function(input, error.input, text){
            call. = FALSE)
 
   }
+
+  #-----------------------------------------------------------------------------
 
   if (!is.logical(error.input) || length(error.input) != 1) {
 
@@ -1129,31 +1143,40 @@ test_database_function <- function(input, error.input, text){
 
   if ("genesis" %in% input) {
 
-    res <- c(res, "genesis" = "gen_api")
+    res <- c(res, "genesis")
 
   }
 
   if ("zensus" %in% input) {
 
-    res <- c(res, "zensus" = "gen_zensus_api")
+    res <- c(res, "zensus")
 
   }
 
   if ("regio" %in% input) {
 
-    res <- c(res, "regio" = "gen_regio_api")
+    res <- c(res, "regio")
 
   }
+
+  #-----------------------------------------------------------------------------
 
   if ("all" %in% input) {
 
     if (isTRUE(text)) {
 
-      message("All databases accessible to you are selected. Additional databases specified in the 'database'-parameter are ignored.")
+      message("All databases accessible to you are preselected. Additional databases specified in the 'database' parameter are ignored.")
 
     }
 
-    res <- c("genesis" = "gen_api", "zensus" = "gen_zensus_api", "regio" = "gen_regio_api")
+    res <- c("genesis",
+             "zensus",
+             "regio")
+
+  } else if (length(res) == 0 || is.null(res)) {
+
+    stop("All the databases you have specified are not part of this package.\nPlease enter valid database names ('regio', 'zensus', 'genesis' or 'all').",
+         call. = FALSE)
 
   } else if (length(res) != length(input)) {
 
@@ -1176,13 +1199,13 @@ test_database_function <- function(input, error.input, text){
 
   #-----------------------------------------------------------------------------
 
-  check <- sapply(res, function(y) {
+  # Check if credentials are available for the selected databases
 
-    nam <- rev_database_function(y)
+  check <- sapply(res, function(y) {
 
     result <- tryCatch({
 
-        user <- gen_auth_get(nam)$username
+        user <- gen_auth_get(y)$username
 
       }, error = function(e) {
 
@@ -1215,7 +1238,7 @@ test_database_function <- function(input, error.input, text){
 
       if (isTRUE(text)) {
 
-        mess <- paste("The following databases are not accessible to you:", names(res[!check]))
+        mess <- paste("The following databases are not accessible to you:", paste(res[!check], collapse = ", "))
 
         message(mess)
 
@@ -1227,7 +1250,7 @@ test_database_function <- function(input, error.input, text){
 
     } else {
 
-      mess <- paste("The following databases are not accessible to you:", names(res[!check]), "\nPlease check your credentials.")
+      mess <- paste("The following databases are not accessible to you:", paste(res[!check], collapse = ", "), "\nPlease check your credentials.")
 
       stop(mess, call. = FALSE)
 
@@ -1239,7 +1262,7 @@ test_database_function <- function(input, error.input, text){
 
   if (identical(res, c())) {
 
-    stop("You have to correctly specifiy a 'database' parameter. Please refer to the documentation for further information.",
+    stop("You have to correctly specify a 'database' parameter. Please refer to the documentation for further information.",
          call. = FALSE)
 
   } else {
@@ -1247,21 +1270,6 @@ test_database_function <- function(input, error.input, text){
     return(res)
 
   }
-
-}
-
-#-------------------------------------------------------------------------------
-#' rev_database_function
-#'
-#' @param input Input to test for database name
-#'
-rev_database_function <- function(input){
-
-  input[which(input == "gen_api")] <- "genesis"
-  input[which(input == "gen_zensus_api")] <- "zensus"
-  input[which(input == "gen_regio_api")] <- "regio"
-
-  return(input)
 
 }
 

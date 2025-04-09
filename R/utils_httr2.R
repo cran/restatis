@@ -223,12 +223,12 @@ resp_check_data <- function(resp) {
 
   if (!(httr2::resp_content_type(resp) %in% c("application/zip", "text/csv", "application/json"))) {
 
-    stop("Encountered an invalid response type.",
+    stop(paste0("Encountered an invalid response type (", httr2::resp_content_type(resp), ")."),
          call. = FALSE)
 
   }
 
-  return <- httr2::resp_content_type(resp)
+  return(httr2::resp_content_type(resp))
 
 }
 
@@ -276,21 +276,31 @@ return_table_object <- function(response,
                               "Consider making a range of smaller requests or use the \n",
                               "option to create a job by setting the 'job' parameter \n",
                               "of 'gen_table()' to TRUE. You can then download the job \n",
-                              "later (use the function 'gen_list_jobs()' to check its status).")
+                              "later (use the function 'gen_list_jobs()' to check its status) \n",
+                              "and download it using gen_download_job().")
 
       stop(error_message, call. = FALSE)
 
     } else if (response_parsed$Status$Code == 99) {
 
-      message <- paste0("You have requested successfully created a job with \n",
+      message <- paste0("You have successfully created a job with \n",
                         "your request. Use the function 'gen_list_jobs()' ",
                         "to check its status and download it once completed.")
 
       message(message)
 
+    } else if (response_parsed$Status$Code == 104) {
+
+      stop("There are no results for your request. Please check if the requested table code is valid for the database selected.",
+           call. = FALSE)
+
     } else {
 
-      stop("There has been an error with your request (not parseable response type 'application/json').\n Please try again later or contact the package maintainer.",
+      stop(paste0("There has been an error with your request (API error code: '",
+                  response_parsed$Status$Code,
+                  "', error message: '",
+                  response_parsed$Status$Content,
+                  "').\n Please try again later or contact the package maintainer."),
            call. = FALSE)
 
     }
@@ -411,11 +421,13 @@ return_table_object <- function(response,
 #'
 #' @param database The user input to 'gen_logincheck'
 #' @param verbose Boolean. Should the function message in case of success?
+#' @param ... Additional parameters (unchecked)
 #'
 #' @return Informative error/warning messages + invisibly TRUE/FALSE
 #'
 logincheck_http_error <- function(database,
-                                  verbose) {
+                                  verbose,
+                                  ...) {
 
   #-----------------------------------------------------------------------------
 
@@ -430,9 +442,9 @@ logincheck_http_error <- function(database,
 
     #---------------------------------------------------------------------------
 
-    if (database == "genesis") response <- gen_api("helloworld/logincheck")
-    if (database == "zensus") response <- gen_zensus_api("helloworld/logincheck")
-    if (database == "regio") response <- gen_regio_api("helloworld/logincheck")
+    response <- .gen_api_core(endpoint = "helloworld/logincheck",
+                              database = database,
+                              ...)
 
     logincheck_stop_or_warn(response = response,
                             error = TRUE,
@@ -445,9 +457,9 @@ logincheck_http_error <- function(database,
 
     databases <- list("genesis", "zensus", "regio")
 
-    response_list <- list(response_genesis = gen_api("helloworld/logincheck"),
-                          response_zensus = gen_zensus_api("helloworld/logincheck"),
-                          response_regio = gen_regio_api("helloworld/logincheck"))
+    response_list <- list(response_genesis = .gen_api_core(endpoint = "helloworld/logincheck", database = "genesis", ...),
+                          response_zensus = .gen_api_core(endpoint = "helloworld/logincheck", database = "zensus", ...),
+                          response_regio = .gen_api_core(endpoint = "helloworld/logincheck", database = "regio", ...))
 
     purrr::walk2(.x = response_list,
                  .y = databases,
@@ -471,7 +483,7 @@ logincheck_http_error <- function(database,
 
     if ("genesis" %in% database) {
 
-      logincheck_stop_or_warn(response = gen_api("helloworld/logincheck"),
+      logincheck_stop_or_warn(response = .gen_api_core(endpoint = "helloworld/logincheck", database = "genesis", ...),
                               error = FALSE,
                               verbose = verbose,
                               database = "genesis")
@@ -482,7 +494,7 @@ logincheck_http_error <- function(database,
 
     if ("zensus" %in% database) {
 
-      logincheck_stop_or_warn(response = gen_zensus_api("helloworld/logincheck"),
+      logincheck_stop_or_warn(response = .gen_api_core(endpoint = "helloworld/logincheck", database = "zensus", ...),
                               error = FALSE,
                               verbose = verbose,
                               database = "zensus")
@@ -493,7 +505,7 @@ logincheck_http_error <- function(database,
 
     if ("regio" %in% database) {
 
-      logincheck_stop_or_warn(response = gen_regio_api("helloworld/logincheck"),
+      logincheck_stop_or_warn(response = .gen_api_core(endpoint = "helloworld/logincheck", database = "regio", ...),
                               error = FALSE,
                               verbose = verbose,
                               database = "regio")
@@ -581,106 +593,37 @@ logincheck_stop_or_warn <- function(response,
 #' insert_and_save_credentials
 #'
 #' @param database The database to specify credentials for
+#' @param use_token Boolean. Do you want to (if possible) set an API token instead of password + username? Defaults to FALSE.
 #'
-insert_and_save_credentials <- function(database) {
+insert_and_save_credentials <- function(database,
+                                        use_token) {
 
-  if (database %in% c("genesis", "regio")) {
+  if (database == "regio") {
 
-    username <- gen_auth_ask("username")
-    password <- gen_auth_ask("password")
+    if (isTRUE(use_token)) use_token <- FALSE
 
-    auth_path <- gen_auth_path(paste0("auth_", database, ".rds"))
-
-    key <- httr2::secret_make_key()
-
-    key_name <- paste0(toupper(database), "_KEY")
-
-    do.call("Sys.setenv", setNames(list(key), key_name))
-
-    message(paste0("Saving '", database, "' database credentials to "),
-            auth_path,
-            "\n\n",
-            "Please add the following line to your .Renviron, ",
-            "e.g. via `usethis::edit_r_environ()`, ",
-            "to use the specified username and password across sessions:\n\n",
-            paste0(key_name, "="),
-            key,
-            "\n\n")
-
-    dir.create(gen_auth_path(), showWarnings = FALSE, recursive = TRUE)
-
-    httr2::secret_write_rds(list(username = username,
-                                 password = password),
-                            path = auth_path,
-                            key = key_name)
+    set_credentials_auth(path = "auth_regio.rds",
+                         sys_env = "REGIO_KEY",
+                         ui_menu_database = "regionalstatistik.de",
+                         use_token = use_token)
 
   #-----------------------------------------------------------------------------
 
   } else if (database == "zensus") {
 
-    want_token_resp <- menu(choices = c("Zensus 2022 API token",
-                                        "mail address + password"),
-                            graphics = FALSE,
-                            title = "Do you want to specifiy a Zensus 2022 API token or regular credentials for access?")
+    set_credentials_auth(path = "auth_zensus.rds",
+                         sys_env = "ZENSUS_KEY",
+                         ui_menu_database = "Zensus 2022",
+                         use_token = use_token)
 
-    want_token <- ifelse(want_token_resp == 1L, TRUE, FALSE)
+  #-----------------------------------------------------------------------------
 
-    if (isTRUE(want_token)) {
+  } else if (database == "genesis") {
 
-      username <- gen_auth_ask("API token")
-      password <- ""
-
-      auth_path <- gen_auth_path("auth_zensus.rds")
-
-      key <- httr2::secret_make_key()
-
-      Sys.setenv(ZENSUS_KEY = key)
-
-      message("Saving Zensus 2022 database credentials to ",
-              auth_path,
-              "\n\n",
-              "Please add the following line to your .Renviron, ",
-              "e.g. via `usethis::edit_r_environ()`, ",
-              "to use the specified username and password across sessions:\n\n",
-              "ZENSUS_KEY=",
-              key,
-              "\n\n")
-
-      dir.create(gen_auth_path(), showWarnings = FALSE, recursive = TRUE)
-
-      httr2::secret_write_rds(list(username = username,
-                                   password = password),
-                              path = auth_path,
-                              key = "ZENSUS_KEY")
-
-    } else {
-
-      username <- gen_auth_ask("username")
-      password <- gen_auth_ask("password")
-
-      auth_path <- gen_auth_path("auth_zensus.rds")
-
-      key <- httr2::secret_make_key()
-
-      Sys.setenv(ZENSUS_KEY = key)
-
-      message("Saving Zensus 2022 database credentials to ",
-              auth_path,
-              "\n\n",
-              "Please add the following line to your .Renviron, ",
-              "e.g. via `usethis::edit_r_environ()`, ",
-              "to use the specified username and password across sessions:\n\n",
-              "ZENSUS_KEY=",
-              key,
-              "\n\n")
-
-      dir.create(gen_auth_path(), showWarnings = FALSE, recursive = TRUE)
-
-      httr2::secret_write_rds(list(username = username, password = password),
-                              path = auth_path,
-                              key = "ZENSUS_KEY")
-
-    }
+    set_credentials_auth(path = "auth_genesis.rds",
+                         sys_env = "GENESIS_KEY",
+                         ui_menu_database = "GENESIS",
+                         use_token = use_token)
 
   } else {
 
@@ -690,3 +633,69 @@ insert_and_save_credentials <- function(database) {
   }
 
 }
+
+#-------------------------------------------------------------------------------
+
+#' set_credentials_auth
+#'
+#' @param path Path for the .rds file
+#' @param sys_env System environment variable name for the key
+#' @param ui_menu_database The database for the auth request ('GENESIS' or 'Zensus 2022')
+#' @param use_token Boolean. Do you want to (if possible) set an API token instead of password + username? Defaults to FALSE.
+#'
+set_credentials_auth <- function(path,
+                                 sys_env,
+                                 ui_menu_database,
+                                 use_token) {
+
+  if(isTRUE(use_token)) {
+
+    username <- gen_auth_ask(paste0("API token for ", ui_menu_database))
+    password <- ""
+
+  } else {
+
+    username <- gen_auth_ask(paste0("username for ", ui_menu_database))
+    password <- gen_auth_ask(paste0("password for ", ui_menu_database))
+
+  }
+
+  auth_path <- gen_auth_path(path)
+
+  key <- httr2::secret_make_key()
+
+  do.call(Sys.setenv, setNames(list(key), sys_env))
+
+  message(paste0("Your credentials for the ", ui_menu_database, " database have been saved to "),
+          auth_path,
+          ".",
+          "\n\n",
+          "The key to the credentials file has been set as environment variable, which is lost after the R session is closed.",
+          "\n\n",
+          "If you want to keep the key saved for future sessions, please add the following line to your .Renviron file, ",
+          "e.g. via the function `usethis::edit_r_environ()`:\n\n",
+          paste0(sys_env, "="),
+          key,
+          "\n\n")
+
+  dir.create(gen_auth_path(), showWarnings = FALSE, recursive = TRUE)
+
+  credentials_list <- list(username = username, password = password)
+
+  if (isTRUE(use_token)) {
+
+    attr(credentials_list, "credential_type") <- "token"
+
+  } else {
+
+    attr(credentials_list, "credential_type") <- "username_password"
+
+  }
+
+  httr2::secret_write_rds(credentials_list,
+                          path = auth_path,
+                          key = sys_env)
+
+}
+
+#-------------------------------------------------------------------------------

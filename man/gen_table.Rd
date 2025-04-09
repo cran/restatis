@@ -40,10 +40,15 @@ updated after this date.}
 \item{\code{language}}{Search terms, returned messages and data
 descriptions in German (\code{"de"}) or English (\code{"en"})?}
 \item{\code{job}}{Boolean. Indicate as to whether a job should be created
-(not available with the 'Zensus' database).)}
+(not available with the 'Zensus' database). In order to set job = TRUE
+you have to have username and password saved with gen_auth_save(),
+using API tokens with job = TRUE will result in an error.}
 \item{\code{all_character}}{Boolean. Should all variables be imported as
 'character' variables? Avoids fuzzy data type conversions if there are
 leading zeros or other special characters. Defaults to TRUE.}
+\item{\code{...}}{Additional parameters for the API call (see respective API documentation).
+A valid specification of these will not be checked by the function, so wrongful specification
+may lead to errors.}
 }}
 }
 \value{
@@ -54,7 +59,7 @@ Download a table with data from GENESIS, Zensus 2022 or regionalstatistik.de dat
 }
 \examples{
 \dontrun{
-gen_table("21311-0001")
+gen_table("21311-0001", database = "genesis")
 }
 
 }

@@ -60,7 +60,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -344,14 +344,21 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div id="information" class="section level2">
 <h2>Information</h2>
 <p>This is a brief overview of the additional parameters for an API call
-via {restatis}. These parameters only affect the API call itself, not
-the data processing. Be aware: Not all parameters are available for all
+via {restatis}. These parameters are offered by some of the API
+endpoints of the three databases, but {restatis} does not explicitly
+offer them as function parameters. We do, however, provide the
+possibility of passing additional parameters to most functions via the
+‘…’ notation. These parameters are then added to the API call and should
+affect it in the intended way. However, they have no other effect (e.g.,
+on data processing) and there is no error handling implemented for them.
+It is the user’s responsibility to provide correct parameter names and
+parameter values. Be aware: Not all parameters are available for all
 functions.</p>
 <p>Especially <code>gen_table()</code> and <code>gen_cube()</code> have
 a lot of different additional parameters to specify the API call. For a
 detailed overview, see the following official documents:</p>
 <ul>
-<li>The GENESIS database: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>The GENESIS database: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>The Zensus 2022 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>regionalstatistik.de: <a href="https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 </ul>
@@ -364,17 +371,17 @@ detailed overview, see the following official documents:</p>
 filter to use for filtering the API call. The criterion to which this
 parameter is applied to is defined by the <code>searchcriterion</code>
 parameter. The maximum length of the string depends on the function
-being used, but often times varies between 10 and 15 characters. It is
+being used, but oftentimes varies between 10 and 15 characters. It is
 possible to use ‘*’ as a placeholder. The default for this parameter is
 <em>no</em> filtering.</p>
 <p>The <code>searchcriterion</code> parameter is a string that specifies
 the criterion to be used by the <code>selection</code> parameter.
-Possible values depend on the function being used, but are often times
+Possible values depend on the function being used, but are oftentimes
 “code” for filtering based on code or “content” for filtering based on
 the content description. The default for this parameter is <em>no</em>
-filter criterion. Often times, the <code>searchcriterion</code>
-parameter and the <code>sortcriterion</code> parameter have the same
-possible values.</p>
+filter criterion. Oftentimes, the <code>searchcriterion</code> parameter
+and the <code>sortcriterion</code> parameter have the same possible
+values.</p>
 <p>Examples:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; which code starts with &quot;WA29&quot;</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">selection =</span> <span class="st">&quot;WA29*&quot;</span>, <span class="at">searchcriterion =</span> <span class="st">&quot;code&quot;</span>, <span class="at">database =</span> <span class="st">&quot;genesis&quot;</span>)</span>
@@ -387,34 +394,26 @@ possible values.</p>
 <p>The <code>sortcriterion</code> parameter is a string that specifies
 whether the raw output of the API call is sorted according to the
 specified input. Possible values depend on the function being used, but
-often times “code” for sorting based on code and “content” for sorting
+oftentimes “code” for sorting based on code and “content” for sorting
 based on the content description are possible. The default is
 <em>no</em> sorting.</p>
 <p>Examples:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; sorted based on their codes</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">sortcriterion =</span> <span class="st">&quot;code&quot;</span>)</span></code></pre></div>
-</div>
-<div id="parameter-pagelength" class="section level3">
-<h3>Parameter: Pagelength</h3>
-<p>The <code>pagelength</code> parameter is a number between 1 and 2500.
-It indicates the maximum length of the API call output. Default is
-100.</p>
-<p>Examples:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot;, where the maximum length of the output is 2500 entries</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">pagelength =</span> <span class="dv">2500</span>)</span></code></pre></div>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">sortcriterion =</span> <span class="st">&quot;code&quot;</span>, <span class="at">database =</span> <span class="st">&quot;genesis&quot;</span>)</span></code></pre></div>
 </div>
 <div id="parameter-language" class="section level3">
 <h3>Parameter: Language</h3>
 <p>The <code>language</code> parameter is a string. It indicates if the
 API call output is in German by using “de” or in English by using “en”.
 Default is “en” (API default is “de” but it is overwritten by {restatis}
-to being “en”).</p>
+to being “en”). <em>This is not a classical additional parameter as it
+is explicitly implemented in many functions.</em></p>
 <p>Examples:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; in German</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">language =</span> <span class="st">&quot;de&quot;</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; in English</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">language =</span> <span class="st">&quot;en&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; in German</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">language =</span> <span class="st">&quot;de&quot;</span>, <span class="at">database =</span> <span class="st">&quot;genesis&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Get the values of the variable &quot;WAM8&quot; in English</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">gen_val2var</span>(<span class="st">&quot;WAM8&quot;</span>, <span class="at">language =</span> <span class="st">&quot;en&quot;</span>, <span class="at">database =</span> <span class="st">&quot;genesis&quot;</span>)</span></code></pre></div>
 </div>
 </div>
 <div id="explicit-overview-of-additional-parameters-per-function" class="section level2">
@@ -441,10 +440,6 @@ gen_alternative_terms
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -474,14 +469,10 @@ gen_catalogue
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -514,10 +505,6 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -550,14 +537,10 @@ are possible</td>
 <td>“code” / “top”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -568,7 +551,7 @@ are possible</td>
 <summary>
 gen_cube
 </summary>
-<p>see the following official documentation: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a>
+<p>see the following official documentation: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a>
 see the following official documentation: <a href="https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a>
 Only available for GENESIS and regionalstatistik.de</p>
 </details>
@@ -585,10 +568,6 @@ gen_find
 </thead>
 <tbody>
 <tr class="odd">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="even">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -625,21 +604,17 @@ searchcriterion; “*” notations are possible</td>
 <td>“type” / “code” / “time” / “status”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>type</td>
 <td>-</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
 regionalstatistik.de: <a href="https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www.regionalstatistik.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 </ul>
@@ -691,10 +666,6 @@ gen_modified_data
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -728,10 +699,6 @@ notations are possible</td>
 <td>“all” / “public” / “user”</td>
 </tr>
 <tr class="odd">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="even">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -764,25 +731,21 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>type</td>
 <td>-</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for the Zensus 2022
 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
@@ -807,14 +770,10 @@ regionalstatistik.de: <a href="https://www.regionalstatistik.de/genesis/misc/GEN
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -844,14 +803,10 @@ gen_objects2var
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -884,14 +839,10 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -916,14 +867,10 @@ are possible</td>
 notations are possible</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
@@ -935,7 +882,7 @@ notations are possible</td>
 gen_table
 </summary>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for the Zensus 2022
 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
@@ -972,25 +919,21 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>type</td>
 <td>-</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for the Zensus 2022
 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
@@ -1027,10 +970,6 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
@@ -1067,25 +1006,21 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>type</td>
 <td>-</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for the Zensus 2022
 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
@@ -1122,25 +1057,21 @@ are possible</td>
 <td>“code” / “content”</td>
 </tr>
 <tr class="even">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="odd">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>area</td>
 <td>“all” / “public” / “user”</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>type</td>
 <td>-</td>
 </tr>
 </tbody>
 </table>
 <ul>
-<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/genesis/misc/GENESIS-Webservices_Einfuehrung.pdf</a></li>
+<li>See more in the following official documentation for GENESIS: <a href="https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf" class="uri">https://www-genesis.destatis.de/datenbank/online/docs/GENESIS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for the Zensus 2022
 database: <a href="https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf" class="uri">https://ergebnisse.zensus2022.de/datenbank/online/docs/ZENSUS-Webservices_Einfuehrung.pdf</a></li>
 <li>See more in the following official documentation for
@@ -1192,10 +1123,6 @@ possible</td>
 <td>“all” / “public” / “user”</td>
 </tr>
 <tr class="odd">
-<td>pagelength</td>
-<td>1-2500</td>
-</tr>
-<tr class="even">
 <td>language</td>
 <td>“de” / “en”</td>
 </tr>

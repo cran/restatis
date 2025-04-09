@@ -10,16 +10,12 @@
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  # Get the values of the variable "WAM8" sorted based on their codes
-#  gen_val2var("WAM8", sortcriterion = "code")
-
-## ----eval=FALSE---------------------------------------------------------------
-#  # Get the values of the variable "WAM8", where the maximum length of the output is 2500 entries
-#  gen_val2var("WAM8", pagelength = 2500)
+#  gen_val2var("WAM8", sortcriterion = "code", database = "genesis")
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  # Get the values of the variable "WAM8" in German
-#  gen_val2var("WAM8", language = "de")
+#  gen_val2var("WAM8", language = "de", database = "genesis")
 #  
 #  # Get the values of the variable "WAM8" in English
-#  gen_val2var("WAM8", language = "en")
+#  gen_val2var("WAM8", language = "en", database = "genesis")
 

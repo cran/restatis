@@ -3,7 +3,7 @@ Title: R Wrapper to Access a Wide Range of Germany's Federal
         Statistical System Databases Based on the GENESIS Web Service
         RESTful API of the German Federal Statistical Office
         (Statistisches Bundesamt/Destatis)
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Yannik", "Buhl", , "ybuhl@posteo.de", role = c("aut", "cre")),
     person("Zoran", "Kovacevic", role = "aut",
@@ -32,7 +32,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-07-25 18:15:49 UTC; buhly
+Packaged: 2025-04-09 19:42:27 UTC; buhly
 Author: Yannik Buhl [aut, cre],
   Zoran Kovacevic [aut] (<https://orcid.org/0009-0002-0156-0862>),
   Dorian Le Jeune [aut],
@@ -40,4 +40,4 @@ Author: Yannik Buhl [aut, cre],
   Johannes Ritter [aut]
 Maintainer: Yannik Buhl <ybuhl@posteo.de>
 Repository: CRAN
-Date/Publication: 2024-07-25 21:30:02 UTC
+Date/Publication: 2025-04-09 20:00:02 UTC
